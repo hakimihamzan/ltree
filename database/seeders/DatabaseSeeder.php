@@ -18,11 +18,11 @@ class DatabaseSeeder extends Seeder
         $finance = Department::create(['name' => 'Finance']);
 
         // Create users
-        $john = User::create(['name' => 'John', 'email' => 'john@example.com', 'password' => bcrypt('password')]);
-        $mike = User::create(['name' => 'Mike', 'email' => 'mike@example.com', 'password' => bcrypt('password')]);
-        $jane = User::create(['name' => 'Jane', 'email' => 'jane@example.com', 'password' => bcrypt('password')]);
-        $dave = User::create(['name' => 'Dave', 'email' => 'dave@example.com', 'password' => bcrypt('password')]);
-        $bob = User::create(['name' => 'Bob', 'email' => 'bob@example.com', 'password' => bcrypt('password')]);
+        $john = User::create(['name' => 'John', 'email' => 'john@example.com', 'password' => bcrypt('password'), 'department_id' => $finance->id]);
+        $mike = User::create(['name' => 'Mike', 'email' => 'mike@example.com', 'password' => bcrypt('password'), 'department_id' => $finance->id]);
+        $jane = User::create(['name' => 'Jane', 'email' => 'jane@example.com', 'password' => bcrypt('password'), 'department_id' => $finance->id]);
+        $dave = User::create(['name' => 'Dave', 'email' => 'dave@example.com', 'password' => bcrypt('password'), 'department_id' => $finance->id]);
+        $bob = User::create(['name' => 'Bob', 'email' => 'bob@example.com', 'password' => bcrypt('password'), 'department_id' => $finance->id]);
 
         // Create approval chain records
         $head = ApprovalChain::create([

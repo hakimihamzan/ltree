@@ -8,6 +8,11 @@ class Department extends Model
 {
     protected $guarded = ['id'];
 
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function approvalChains()
     {
         return $this->hasMany(ApprovalChain::class);

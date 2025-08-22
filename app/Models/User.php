@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'department_id',
     ];
 
     /**
@@ -44,5 +45,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function approvalChains()
+    {
+        return $this->hasMany(ApprovalChain::class);
+    }
+
+    public function submittedPurchaseRequests()
+    {
+        return $this->hasMany(PurchaseRequest::class, 'requester_id');
+    }
+
+    public function pendingApprovals()
+    {
+        return $this->hasManyThrough(
+            PurchaseRequestApprover::class,
+            ApprovalChain::class,
+            'user_id',
+            'approval_chain_id'
+        )->where('has_approved', false);
     }
 }

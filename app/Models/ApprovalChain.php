@@ -18,12 +18,11 @@ class ApprovalChain extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Get next approver level (all approvers at the next level)
+    // Get next approver level (direct subordinates only)
     public function nextApprovers()
     {
-        $nextLevel = $this->getLevel() + 1;
         return ApprovalChain::where('department_id', $this->department_id)
-            ->whereRaw('nlevel(path) = ?', [$nextLevel])
+            ->whereRaw('path <@ ? AND nlevel(path) = nlevel(?) + 1', [$this->path, $this->path])
             ->get();
     }
 
@@ -41,7 +40,7 @@ class ApprovalChain extends Model
     // Get the level of this approver in the hierarchy
     public function getLevel()
     {
-        return substr_count($this->path, '.') + 1;
+        return substr_count($this->path, '.');
     }
 
     // Get all approvers at the same level
