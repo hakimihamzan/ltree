@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('requester_id')->constrained('users')->onDelete('cascade');
             $table->string('item');
             $table->decimal('amount', 12, 2);
-            $table->unsignedBigInteger('current_approver_id')->nullable();
+            $table->integer('current_approval_level')->default(1);
             $table->string('status')->default('pending');
             $table->timestamps();
         });

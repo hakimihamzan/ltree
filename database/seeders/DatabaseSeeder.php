@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
         $ceo->path = "{$finance->id}.{$head->id}.{$ceo->id}";
         $ceo->save();
 
+        // Both Jane and Dave are at the same level (both need to approve)
         $ga_jane->path = "{$finance->id}.{$head->id}.{$ceo->id}.{$ga_jane->id}";
         $ga_jane->save();
 

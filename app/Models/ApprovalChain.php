@@ -12,26 +12,44 @@ class ApprovalChain extends Model
     {
         return $this->belongsTo(Department::class);
     }
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Get next approver in chain
+    // Get next approver level (all approvers at the next level)
     public function nextApprovers()
     {
+        $nextLevel = $this->getLevel() + 1;
         return ApprovalChain::where('department_id', $this->department_id)
-            ->whereRaw("path ~ '{$this->path}.*{1}'")
-            ->orderByRaw('nlevel(path)')
-            ->first();
+            ->whereRaw('nlevel(path) = ?', [$nextLevel])
+            ->get();
     }
 
-    // Get previous approver
-    public function previousApprover()
+    // Get previous approver level
+    public function previousApprovers()
     {
-        $parentPath = implode('.', array_slice(explode('.', $this->path), 0, -1));
+        $prevLevel = $this->getLevel() - 1;
+        if ($prevLevel < 2) return collect(); // Level 1 is department
+
         return ApprovalChain::where('department_id', $this->department_id)
-            ->where('path', $parentPath)->first();
+            ->whereRaw('nlevel(path) = ?', [$prevLevel])
+            ->get();
+    }
+
+    // Get the level of this approver in the hierarchy
+    public function getLevel()
+    {
+        return substr_count($this->path, '.') + 1;
+    }
+
+    // Get all approvers at the same level
+    public function sameLevelApprovers()
+    {
+        return ApprovalChain::where('department_id', $this->department_id)
+            ->whereRaw('nlevel(path) = nlevel(?)', [$this->path])
+            ->where('id', '!=', $this->id)
+            ->get();
     }
 }
