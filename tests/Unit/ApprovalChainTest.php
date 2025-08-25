@@ -276,17 +276,17 @@ class ApprovalChainTest extends TestCase
             ApprovalChain::create([
                 'department_id' => $this->department->id,
                 'user_id' => $this->users['lisa']->id,
-                'path' => '1.2.12'
-            ]),
-            ApprovalChain::create([
-                'department_id' => $this->department->id,
-                'user_id' => $this->users['jane']->id,
                 'path' => '1.2.3'
             ]),
             ApprovalChain::create([
                 'department_id' => $this->department->id,
+                'user_id' => $this->users['jane']->id,
+                'path' => '1.2.4'
+            ]),
+            ApprovalChain::create([
+                'department_id' => $this->department->id,
                 'user_id' => $this->users['sarah']->id,
-                'path' => '1.2.3.11'
+                'path' => '1.2.4.5'
             ]),
             ApprovalChain::create([
                 'department_id' => $this->department->id,
@@ -343,13 +343,13 @@ class ApprovalChainTest extends TestCase
         $lisa = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['lisa']->id,
-            'path' => $mike->path . '.12'
+            'path' => $mike->path . '.3'
         ]);
 
         // Verify hierarchy is maintained
         $this->assertEquals('1', $john->path);
         $this->assertEquals('1.2', $mike->path);
-        $this->assertEquals('1.2.12', $lisa->path);
+        $this->assertEquals('1.2.3', $lisa->path);
 
         // Verify parent-child relationships
         $this->assertTrue($john->nextApprovers()->contains('id', $mike->id));

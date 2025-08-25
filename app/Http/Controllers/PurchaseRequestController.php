@@ -38,6 +38,7 @@ class PurchaseRequestController extends Controller
         ]);
 
         DB::transaction(function() use ($request) {
+            /** @var \App\Models\PurchaseRequest $purchaseRequest */
             $purchaseRequest = PurchaseRequest::create([
                 'department_id' => $request->department_id,
                 'requester_id' => Auth::id(),
