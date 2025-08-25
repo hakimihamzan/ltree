@@ -30,7 +30,7 @@ class ApprovalChain extends Model
     public function previousApprovers()
     {
         $prevLevel = $this->getLevel() - 1;
-        if ($prevLevel < 2) return collect(); // Level 1 is department
+        if ($prevLevel < 1) return collect(); // Level 1 is first approver level
 
         return ApprovalChain::where('department_id', $this->department_id)
             ->whereRaw('nlevel(path) = ?', [$prevLevel])
@@ -40,7 +40,7 @@ class ApprovalChain extends Model
     // Get the level of this approver in the hierarchy
     public function getLevel()
     {
-        return substr_count($this->path, '.');
+        return substr_count($this->path, '.') + 1; // +1 because path "1" is level 1, "1.2" is level 2
     }
 
     // Get all approvers at the same level

@@ -60,8 +60,8 @@ class ApprovalChainController extends Controller
                 $parent = ApprovalChain::find($request->parent_chain_id);
                 $path = $parent->path . '.' . $approvalChain->id;
             } else {
-                // Root level (department level)
-                $path = $request->department_id . '.' . $approvalChain->id;
+                // Root level (first approver level)
+                $path = $approvalChain->id;
             }
 
             $approvalChain->update(['path' => $path]);
@@ -109,7 +109,7 @@ class ApprovalChainController extends Controller
                 $parent = ApprovalChain::find($request->parent_chain_id);
                 $path = $parent->path . '.' . $approvalChain->id;
             } else {
-                $path = $request->department_id . '.' . $approvalChain->id;
+                $path = $approvalChain->id;
             }
 
             $approvalChain->update(['path' => $path]);

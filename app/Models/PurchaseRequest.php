@@ -27,7 +27,7 @@ class PurchaseRequest extends Model
     {
         return $this->approvers()
             ->whereHas('approvalChain', function ($query) {
-                $query->whereRaw('nlevel(path) = ?', [$this->current_approval_level + 1]); // +1 because path includes department
+                $query->whereRaw('nlevel(path) = ?', [$this->current_approval_level]);
             });
     }
 
@@ -62,7 +62,7 @@ class PurchaseRequest extends Model
         // Get next level approvers
         $nextLevel = $this->current_approval_level + 1;
         $nextLevelChains = ApprovalChain::where('department_id', $this->department_id)
-            ->whereRaw('nlevel(path) = ?', [$nextLevel + 1]) // +1 because path includes department
+            ->whereRaw('nlevel(path) = ?', [$nextLevel])
             ->get();
 
         if ($nextLevelChains->isEmpty()) {
@@ -85,9 +85,9 @@ class PurchaseRequest extends Model
 
     public function initializeApprovalProcess()
     {
-        // Get first level approvers (level 2 in path since level 1 is department)
+        // Get first level approvers (level 1 in path)
         $firstLevelChains = ApprovalChain::where('department_id', $this->department_id)
-            ->whereRaw('nlevel(path) = ?', [2])
+            ->whereRaw('nlevel(path) = ?', [1])
             ->get();
 
         foreach ($firstLevelChains as $chain) {
