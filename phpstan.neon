@@ -1,0 +1,21 @@
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
+parameters:
+    level: 9
+    paths:
+        - app
+    scanFiles:
+        - _ide_helper.php
+        - _ide_helper_models.php
+        - .phpstorm.meta.php
+    ignoreErrors:
+        - '#Call to an undefined method .*(Request|LoginRequest|ProfileUpdateRequest)::(user|session|only|boolean|string|ip|filled)\(\)#'
+        - '#Access to undefined constant .*Password::(PASSWORD_RESET|RESET_LINK_SENT)#'
+        - '#Parameter .* of function __ expects string\|null, mixed given#'
+        - '#Method .* return type with generic class .* does not specify its types#'
+        - '#Method App\\Http\\Controllers\\.*::.* has no return type specified#'
+        - '#Method App\\Http\\Controllers\\.*::.* has parameter .* with no type specified#'
+        - '#Cannot access property \$id on App\\Models\\User\|null#'
+        - '#Cannot access property \$path on App\\Models\\ApprovalChain.*\|null#'
+        - '#Access to an undefined property .*::\$approvalChain#'
+        - '#Argument of an invalid type .* supplied for foreach, only iterables are supported#'

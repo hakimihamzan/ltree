@@ -4,9 +4,15 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @mixin IdeHelperUser
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -47,22 +53,22 @@ class User extends Authenticatable
         ];
     }
 
-    public function department()
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    public function approvalChains()
+    public function approvalChains(): HasMany
     {
         return $this->hasMany(ApprovalChain::class);
     }
 
-    public function submittedPurchaseRequests()
+    public function submittedPurchaseRequests(): HasMany
     {
         return $this->hasMany(PurchaseRequest::class, 'requester_id');
     }
 
-    public function pendingApprovals()
+    public function pendingApprovals(): HasManyThrough
     {
         return $this->hasManyThrough(
             PurchaseRequestApprover::class,

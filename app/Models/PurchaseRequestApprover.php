@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
+/**
+ * @mixin IdeHelperPurchaseRequestApprover
+ */
 class PurchaseRequestApprover extends Model
 {
     protected $guarded = ['id'];
@@ -14,17 +19,17 @@ class PurchaseRequestApprover extends Model
 
     // Remove boolean cast for has_approved to allow null values
 
-    public function purchaseRequest()
+    public function purchaseRequest(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequest::class);
     }
 
-    public function approvalChain()
+    public function approvalChain(): BelongsTo
     {
         return $this->belongsTo(ApprovalChain::class);
     }
 
-    public function user()
+    public function user(): HasOneThrough
     {
         return $this->hasOneThrough(User::class, ApprovalChain::class, 'id', 'id', 'approval_chain_id', 'user_id');
     }

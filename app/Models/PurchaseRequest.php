@@ -3,27 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * @mixin IdeHelperPurchaseRequest
+ */
 class PurchaseRequest extends Model
 {
     protected $guarded = ['id'];
 
-    public function department()
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    public function requester()
+    public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requester_id');
     }
 
-    public function approvers()
+    public function approvers(): HasMany
     {
         return $this->hasMany(PurchaseRequestApprover::class);
     }
 
-    public function currentLevelApprovers()
+    public function currentLevelApprovers(): HasMany
     {
         return $this->approvers()
             ->whereHas('approvalChain', function ($query) {
@@ -31,24 +37,24 @@ class PurchaseRequest extends Model
             });
     }
 
-    public function pendingApprovers()
+    public function pendingApprovers(): HasMany
     {
         return $this->currentLevelApprovers()->where('has_approved', false);
     }
 
-    public function availableApprovers()
+    public function availableApprovers(): HasMany
     {
         // Approvers who can still approve (haven't been bypassed)
         return $this->currentLevelApprovers()->whereIn('has_approved', [false, null]);
     }
 
-    public function canMoveToNextLevel()
+    public function canMoveToNextLevel(): bool
     {
         // For OR logic: can move if ANY approver at current level has approved
         return $this->currentLevelApprovers()->where('has_approved', true)->count() > 0;
     }
 
-    public function moveToNextLevel()
+    public function moveToNextLevel(): bool
     {
         if (!$this->canMoveToNextLevel()) {
             return false;
@@ -70,7 +76,8 @@ class PurchaseRequest extends Model
             ->update(['has_approved' => null]); // null = not needed anymore
 
         // Check if the approver who approved has any descendants
-        $nextApproversForThisApprover = $approvedApprover->approvalChain->nextApprovers();
+        $approvalChain = $approvedApprover->approvalChain;
+        $nextApproversForThisApprover = $approvalChain ? $approvalChain->nextApprovers() : new Collection();
 
         if ($nextApproversForThisApprover->isEmpty()) {
             // This approver has no descendants, so approve the request
@@ -90,7 +97,7 @@ class PurchaseRequest extends Model
         return true;
     }
 
-    public function initializeApprovalProcess()
+    public function initializeApprovalProcess(): void
     {
         // Get first level approvers (level 1 in path)
         $firstLevelChains = ApprovalChain::where('department_id', $this->department_id)
