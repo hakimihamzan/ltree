@@ -13,6 +13,7 @@ class PurchaseRequestController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $purchaseRequests = $user->submittedPurchaseRequests()
             ->with(['department', 'approvers.approvalChain.user'])

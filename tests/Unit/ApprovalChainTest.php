@@ -27,39 +27,45 @@ class ApprovalChainTest extends TestCase
             'description' => 'Test Finance Department'
         ]);
 
-        // Create test users
+        // Create test users with specific IDs so paths can use these IDs
         $this->users = [
             'john' => User::create([
+                'id' => 1,
                 'name' => 'John Doe',
                 'email' => 'john@test.com',
                 'password' => bcrypt('password'),
                 'department_id' => $this->department->id
             ]),
             'mike' => User::create([
+                'id' => 2,
                 'name' => 'Mike Smith',
                 'email' => 'mike@test.com',
                 'password' => bcrypt('password'),
                 'department_id' => $this->department->id
             ]),
             'lisa' => User::create([
+                'id' => 3,
                 'name' => 'Lisa Wang',
                 'email' => 'lisa@test.com',
                 'password' => bcrypt('password'),
                 'department_id' => $this->department->id
             ]),
             'jane' => User::create([
+                'id' => 4,
                 'name' => 'Jane Davis',
                 'email' => 'jane@test.com',
                 'password' => bcrypt('password'),
                 'department_id' => $this->department->id
             ]),
             'sarah' => User::create([
+                'id' => 5,
                 'name' => 'Sarah Martinez',
                 'email' => 'sarah@test.com',
                 'password' => bcrypt('password'),
                 'department_id' => $this->department->id
             ]),
             'kyle' => User::create([
+                'id' => 6,
                 'name' => 'Kyle Reese',
                 'email' => 'kyle@test.com',
                 'password' => bcrypt('password'),
@@ -71,29 +77,30 @@ class ApprovalChainTest extends TestCase
     #[Test]
     public function test_level_calculation_is_correct()
     {
-        // Create approval chains with different paths
+        // Create approval chains with paths that use user IDs
+        // Hierarchy: John(id=1) -> Mike(id=2) -> Lisa(id=3) -> Sarah(id=5)
         $john = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['john']->id,
-            'path' => '1'
+            'user_id' => $this->users['john']->id, // user_id = 1
+            'path' => '1' // path uses user_id
         ]);
 
         $mike = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['mike']->id,
-            'path' => '1.2'
+            'user_id' => $this->users['mike']->id, // user_id = 2
+            'path' => '1.2' // path uses user_id hierarchy
         ]);
 
         $lisa = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['lisa']->id,
-            'path' => '1.2.12'
+            'user_id' => $this->users['lisa']->id, // user_id = 3
+            'path' => '1.2.3' // path uses user_id hierarchy
         ]);
 
         $sarah = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['sarah']->id,
-            'path' => '1.2.3.11'
+            'user_id' => $this->users['sarah']->id, // user_id = 5
+            'path' => '1.2.3.5' // path uses user_id hierarchy
         ]);
 
         // Test level calculations
@@ -106,23 +113,23 @@ class ApprovalChainTest extends TestCase
     #[Test]
     public function test_terminal_approver_has_no_subordinates()
     {
-        // Create hierarchy: John -> Mike -> Lisa (terminal)
+        // Create hierarchy: John(1) -> Mike(2) -> Lisa(3) (terminal)
         $john = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['john']->id,
-            'path' => '1'
+            'user_id' => $this->users['john']->id, // user_id = 1
+            'path' => '1' // path uses user_id
         ]);
 
         $mike = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['mike']->id,
-            'path' => '1.2'
+            'user_id' => $this->users['mike']->id, // user_id = 2
+            'path' => '1.2' // path uses user_id hierarchy
         ]);
 
         $lisa = ApprovalChain::create([
             'department_id' => $this->department->id,
-            'user_id' => $this->users['lisa']->id,
-            'path' => '1.2.12'
+            'user_id' => $this->users['lisa']->id, // user_id = 3
+            'path' => '1.2.3' // path uses user_id hierarchy
         ]);
 
         // Test subordinate relationships
@@ -142,7 +149,7 @@ class ApprovalChainTest extends TestCase
         $kyle = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['kyle']->id,
-            'path' => '9'
+            'path' => '6'
         ]);
 
         // Kyle should have no subordinates
@@ -169,19 +176,19 @@ class ApprovalChainTest extends TestCase
         $lisa = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['lisa']->id,
-            'path' => '1.2.12'
+            'path' => '1.2.3'
         ]);
 
         $jane = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['jane']->id,
-            'path' => '1.2.3'
+            'path' => '1.2.4'
         ]);
 
         $sarah = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['sarah']->id,
-            'path' => '1.2.3.11'
+            'path' => '1.2.4.5'
         ]);
 
         // Test the approval flow: Mike -> Lisa
@@ -220,20 +227,20 @@ class ApprovalChainTest extends TestCase
         $lisa = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['lisa']->id,
-            'path' => '1.2.12'
+            'path' => '1.2.3'
         ]);
 
         // Jane -> Sarah - continues to level 4
         $jane = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['jane']->id,
-            'path' => '1.2.3'
+            'path' => '1.2.4'
         ]);
 
         $sarah = ApprovalChain::create([
             'department_id' => $this->department->id,
             'user_id' => $this->users['sarah']->id,
-            'path' => '1.2.3.11'
+            'path' => '1.2.4.5'
         ]);
 
         // Verify Mike can approve to either Lisa (terminal) or Jane (continues)

@@ -51,6 +51,21 @@
                 @php
                     // Group approval chains by department
                     $chainsByDepartment = $approvalChains->groupBy('department_id');
+                    
+                    // Define the hierarchy building function once, outside the loop
+                    function buildApprovalChainHierarchy($parentChain, $allChains) {
+                        $children = collect($allChains)->filter(function($chain) use ($parentChain) {
+                            return strpos($chain->path, $parentChain->path . '.') === 0 &&
+                                   substr_count($chain->path, '.') === substr_count($parentChain->path, '.') + 1;
+                        });
+
+                        return $children->map(function($child) use ($allChains) {
+                            return [
+                                'chain' => $child,
+                                'children' => buildApprovalChainHierarchy($child, $allChains)
+                            ];
+                        });
+                    }
                 @endphp
 
                 @foreach($chainsByDepartment as $deptId => $chains)
@@ -63,24 +78,10 @@
                             return $chain->getLevel() == 1;
                         });
 
-                        function buildHierarchy($parentChain, $allChains) {
-                            $children = collect($allChains)->filter(function($chain) use ($parentChain) {
-                                return strpos($chain->path, $parentChain->path . '.') === 0 &&
-                                       substr_count($chain->path, '.') === substr_count($parentChain->path, '.') + 1;
-                            });
-
-                            return $children->map(function($child) use ($allChains) {
-                                return [
-                                    'chain' => $child,
-                                    'children' => buildHierarchy($child, $allChains)
-                                ];
-                            });
-                        }
-
                         $hierarchyTree = $rootChains->map(function($root) use ($chainArray) {
                             return [
                                 'chain' => $root,
-                                'children' => buildHierarchy($root, $chainArray)
+                                'children' => buildApprovalChainHierarchy($root, $chainArray)
                             ];
                         });
                     @endphp

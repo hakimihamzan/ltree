@@ -55,13 +55,13 @@ class ApprovalChainController extends Controller
                 'user_id' => $request->user_id,
             ]);
 
-            // Generate path
+            // Generate path using user IDs
             if ($request->parent_chain_id) {
                 $parent = ApprovalChain::find($request->parent_chain_id);
-                $path = $parent->path . '.' . $approvalChain->id;
+                $path = $parent->path . '.' . $approvalChain->user_id;
             } else {
                 // Root level (first approver level)
-                $path = $approvalChain->id;
+                $path = $approvalChain->user_id;
             }
 
             $approvalChain->update(['path' => $path]);
@@ -104,12 +104,12 @@ class ApprovalChainController extends Controller
                 'user_id' => $request->user_id,
             ]);
 
-            // Regenerate path
+            // Regenerate path using user IDs
             if ($request->parent_chain_id) {
                 $parent = ApprovalChain::find($request->parent_chain_id);
-                $path = $parent->path . '.' . $approvalChain->id;
+                $path = $parent->path . '.' . $approvalChain->user_id;
             } else {
-                $path = $approvalChain->id;
+                $path = $approvalChain->user_id;
             }
 
             $approvalChain->update(['path' => $path]);
@@ -130,10 +130,24 @@ class ApprovalChainController extends Controller
 
     public function getParentChains($departmentId)
     {
-        $parentChains = ApprovalChain::where('department_id', $departmentId)
+        $userId = request()->get('user_id');
+        $excludeChainId = request()->get('exclude_chain_id'); // For editing existing chains
+
+        $query = ApprovalChain::where('department_id', $departmentId)
             ->with('user')
-            ->orderByRaw('nlevel(path), path')
-            ->get()
+            ->orderByRaw('nlevel(path), path');
+
+        // Don't include chains for the same user (prevent circular hierarchies)
+        if ($userId) {
+            $query->where('user_id', '!=', $userId);
+        }
+
+        // When editing, exclude the current chain itself
+        if ($excludeChainId) {
+            $query->where('id', '!=', $excludeChainId);
+        }
+
+        $parentChains = $query->get()
             ->map(function($chain) {
                 return [
                     'id' => $chain->id,

@@ -137,6 +137,7 @@
     <script>
         function updateParentOptions() {
             const departmentId = document.getElementById('department_id').value;
+            const userId = document.getElementById('user_id').value;
             const parentSelect = document.getElementById('parent_chain_id');
             const loadingDiv = document.getElementById('parent-loading');
             const levelPreview = document.getElementById('level-preview');
@@ -152,22 +153,25 @@
             // Show loading indicator
             loadingDiv.classList.remove('hidden');
 
-            fetch(`/approval_chains_parents/${departmentId}`)
+            // Build URL with user_id and exclude_chain_id parameters
+            let url = `/approval_chains_parents/${departmentId}?exclude_chain_id={{ $approvalChain->id }}`;
+            if (userId) {
+                url += `&user_id=${userId}`;
+            }
+
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     // Clear existing options
                     parentSelect.innerHTML = '<option value="">None (Root Level)</option>';
 
-                    // Add new options, but exclude the current chain to prevent circular references
-                    const currentChainId = {{ $approvalChain->id }};
+                    // Add new options
                     data.forEach(chain => {
-                        if (chain.id !== currentChainId) {
-                            const option = document.createElement('option');
-                            option.value = chain.id;
-                            option.textContent = chain.text;
-                            option.dataset.level = chain.level;
-                            parentSelect.appendChild(option);
-                        }
+                        const option = document.createElement('option');
+                        option.value = chain.id;
+                        option.textContent = chain.text;
+                        option.dataset.level = chain.level;
+                        parentSelect.appendChild(option);
                     });
 
                     // Hide loading indicator
@@ -201,6 +205,7 @@
         // Add event listeners
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('department_id').addEventListener('change', updateParentOptions);
+            document.getElementById('user_id').addEventListener('change', updateParentOptions);
             document.getElementById('parent_chain_id').addEventListener('change', updateLevelPreview);
         });
     </script>

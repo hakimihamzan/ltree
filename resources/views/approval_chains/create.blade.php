@@ -255,7 +255,11 @@
             hierarchyDiv.innerHTML = '<div class="text-center text-gray-500">Loading current hierarchy...</div>';
             subLevelOptions.innerHTML = '';
 
-            fetch('/approval_chains_parents/' + departmentId)
+            // Get the selected user ID to filter out chains for the same user
+            const userId = selectedUser ? selectedUser.id : null;
+            const url = `/approval_chains_parents/${departmentId}${userId ? `?user_id=${userId}` : ''}`;
+
+            fetch(url)
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
                     approvalChains = data;
