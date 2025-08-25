@@ -54,25 +54,32 @@ class PurchaseRequest extends Model
             return false;
         }
 
+        // Get the approver who just approved
+        $approvedApprover = $this->currentLevelApprovers()
+            ->where('has_approved', true)
+            ->with('approvalChain')
+            ->first();
+
+        if (!$approvedApprover) {
+            return false;
+        }
+
         // Mark all other approvers at current level as "not needed" since one already approved
         $this->currentLevelApprovers()
             ->where('has_approved', false)
             ->update(['has_approved' => null]); // null = not needed anymore
 
-        // Get next level approvers
-        $nextLevel = $this->current_approval_level + 1;
-        $nextLevelChains = ApprovalChain::where('department_id', $this->department_id)
-            ->whereRaw('nlevel(path) = ?', [$nextLevel])
-            ->get();
+        // Check if the approver who approved has any descendants
+        $nextApproversForThisApprover = $approvedApprover->approvalChain->nextApprovers();
 
-        if ($nextLevelChains->isEmpty()) {
-            // No more levels, mark as fully approved
+        if ($nextApproversForThisApprover->isEmpty()) {
+            // This approver has no descendants, so approve the request
             $this->update(['status' => 'approved']);
             return true;
         }
 
-        // Create approver records for next level
-        foreach ($nextLevelChains as $chain) {
+        // Create approver records for the descendants of the approver who approved
+        foreach ($nextApproversForThisApprover as $chain) {
             $this->approvers()->create([
                 'approval_chain_id' => $chain->id,
                 'has_approved' => false
